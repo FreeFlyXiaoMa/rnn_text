@@ -96,4 +96,30 @@ for ui in range(num_unroll):
 valid_dataset=tf.placeholder(tf.float32,shape=[1,in_size],name='valid_dataset')
 valid_labels=tf.placeholder(tf.float32,shape=[1,out_size],name='valid_labels')
 
+#测试数据集
+test_dataset=tf.placeholder(tf.float32,shape=[test_batch_size,in_size],name='test_dataset')
 
+#定义模型参数和其他变量
+#输入层和隐层之间的权重
+W_xh=tf.Variable(tf.truncated_normal([in_size,hidden],stddev=0.02,dtype=tf.float32),name='W_xh')
+
+#隐层之间的权重
+W_hh=tf.Variable(tf.truncated_normal([hidden,hidden],stddev=0.02,dtype=tf.float32),name='W_hh')
+
+#隐层和输出层之间的权重
+W_hy=tf.Variable(tf.truncated_normal([hidden,out_size],stddev=0.02),name='W_hy')
+
+#获取无法训练变量（训练数据）中隐藏节点的之前状态
+prev_train_h=tf.Variable(tf.zeros([batch_size,hidden],dtype=tf.float32),name='train_h',trainable=False)
+
+#获取无法训练变量（验证数据）中隐藏节点的之前状态
+prev_valid_h=tf.Variable(tf.zeros([1,hidden],dtype=tf.float32),name='valid_h',trainable=False)
+
+#获取测试阶段隐藏节点的之前状态
+prev_test_h=tf.Variable(tf.zeros([test_batch_size,hidden],dtype=tf.float32),name='test_h')
+
+#定义RNN的推断
+#训练得分（非标准化）值和预测（标准化）
+y_scores,y_predictions=[],[]
+
+#在num_unroll步数中为每个步长添加计算的RNN输出
